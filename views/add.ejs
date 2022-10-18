@@ -1,0 +1,27 @@
+<%- include('./partials/header.ejs') %>
+
+<form method="post">
+    <table class = "table-striped">
+        <tr>
+            <td style="font-weight: bold;">Title : </td>
+            <td>
+                <input type="text" placeholder="Enter title" name="title" required>
+            </td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold;">Task :</td>
+            <td>
+                <input type="text" placeholder="Enter ask" name="task" required>
+            </td>
+        </tr><br>
+        <tr>
+            <td>
+                <input type="submit" class="btn btn-info">
+                <button type="button" class="btn btn-info" onclick="window.location='display'">Display All</button><br><br>
+                <button type="button" class="btn btn-dark" style="margin-top:-5%;" onclick="window.location='/'">Home Page</button>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<%- include('./partials/footer.ejs') %>

@@ -1,0 +1,24 @@
+<%- include('./partials/header.ejs') %>
+
+<form method="post">
+    <table class = "table-striped">
+        <tr>
+            <td style="font-weight: bold;">Title:</td>
+            <td>
+                <input type="text" placeholder="Enter title" name="title" value="<%= userDetail.title %>" required>
+            </td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold;">Task:</td>
+            <td>
+                <input type="text" placeholder="Enter task" name="task" value="<%= userDetail.task %>" required>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="submit" class="btn btn-info">
+            </td>
+        </tr>
+    </table>
+
+    <%- include('./partials/footer.ejs') %>
