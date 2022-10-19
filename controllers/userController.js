@@ -1,5 +1,9 @@
 import UserModel from "../models/user.js"
 import todoModel from "../models/todo.js"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+const SECRET_KEY = "TODOAPP";
+
 
 class UserController {
     static home = (req, res) => {
@@ -10,27 +14,76 @@ class UserController {
         res.render("registration")
     }
 
+    static createUserDoc = async (req, res) => {
+        const {name, email, password} = req.body;
+        try {
+            const existingUser = await UserModel.findOne({email : email});
+            if (existingUser){
+                return res.status(400).send({message: "User already exists"});
+            }
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const doc = await UserModel.create({
+                name: name,
+                email: email,
+                password: hashedPassword
+            });
+            
+            const token = jwt.sign({ email: doc.email, id: doc._id }, SECRET_KEY, { expiresIn: '1800s' });
+            res.cookie('token', token);
+
+            await doc.save()
+            res.redirect('/login')
+
+        } catch (error) {
+            console.log(error);
+            res.status(500).send({message: "Something went wrong"});
+        }
+    }
+
+    static login = (req, res) => {
+        res.render("login")
+    }
+
+    static verifyLogin = async (req, res) => {
+        const { email, password } = req.body;
+        try {
+            const existingUser = await UserModel.findOne({ email: email })
+            if (!existingUser) {
+                return res.status(404).send({ message: "User  not found" });
+            } 
+            const matchPassword = await bcrypt.compare(password, existingUser.password);
+            res.render('dashboard');
+            if(!matchPassword){
+                return res.status(400).send({ message : "Invalid Credentials" });
+            }
+            const token = jwt.sign({email: existingUser.email, id: existingUser._id}, SECRET_KEY, { expiresIn: '1800s' });
+            res.cookie('token', token);
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    static addTask = (req, res) => {
+        res.render('add');
+    }
     static add = (req, res) => {
         const taskdata = {
             title: req.body.title,
             task: req.body.task
         }
         let data = todoModel(taskdata);
-        data.save(function (err) {
+        data.save((err) => {
             if (err) {
-                res.render('add', { message: 'Task not added' });
+                res.send( { message: 'Task not added' });
             } else {
                 res.render('add', { message: 'Task added successfully' });
             }
         });
     }
 
-    static addTask = (req, res) => {
-        res.render('add');
-    }
-
     static display = (req, res) => {
-        todoModel.find(function (err, todo) {
+        todoModel.find((err, todo) => {
             if (err) {
                 console.log(err);
             } else {
@@ -41,7 +94,7 @@ class UserController {
     }
 
     static delete = (req, res) => {
-        todoModel.findByIdAndRemove(req.params.id, function (err, project) {
+        todoModel.findByIdAndRemove(req.params.id, (err) => {
             if (err) {
                 res.redirect('/display');
             } else {
@@ -52,7 +105,7 @@ class UserController {
 
     static edit = (req, res) => {
         console.log(req.params.id);
-        todoModel.findById(req.params.id, function (err, user) {
+        todoModel.findById(req.params.id, (err, user) => {
             if (err) {
                 console.log(err);
             } else {
@@ -63,7 +116,7 @@ class UserController {
     }
 
     static editTask = (req, res) => {
-        todoModel.findByIdAndUpdate(req.params.id, req.body, function (err) {
+        todoModel.findByIdAndUpdate(req.params.id, req.body, (err) => {
             if (err) {
                 res.redirect('edit/' + req.params.id);
             } else {
@@ -85,44 +138,6 @@ class UserController {
             } 
         });
     }
-
-    static createUserDoc = async (req, res) => {
-        try {
-            const doc = new UserModel({
-                name: req.body.name,
-                email: req.body.email,
-                password: req.body.password
-            })
-
-            await doc.save()
-            res.redirect('/login')
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    static login = (req, res) => {
-        res.render("login")
-    }
-
-    static verifyLogin = async (req, res) => {
-        try {
-            const { email, password } = req.body
-            const result = await UserModel.findOne({ email: email })
-            if (result != null) {
-                if (result.email == email && result.password == password) {
-                    res.render('dashboard')
-                } else {
-                    res.send("<h1> Email or password is not valid</h1>")
-                }
-            } else {
-                res.send("<h1>You are no register</h1>")
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
 }
 
 export default UserController;
