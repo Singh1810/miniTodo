@@ -1,6 +1,6 @@
 import express from 'express'
 import mongoose from "mongoose";
-
+import cookieParser from 'cookie-parser';
 import web from './routes/web.js';
 
 const app = express()
@@ -15,6 +15,8 @@ mongoose.connect("mongodb://localhost:27017/RuchiSingh",
 
 app.set('view engine', 'ejs')
 app.use(express.urlencoded({ extended: true }))
+app.use(express.json());
+app.use(cookieParser());
 
 app.use('/', web)
 
